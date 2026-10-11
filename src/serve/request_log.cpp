@@ -1,4 +1,5 @@
 #include "serve/request_log.h"
+#include "core/platform.h"
 #include "product/constraint_observation.h"
 #include "product/logging/pretty_format.h"
 #include "product/speculative_options.h"
@@ -19,8 +20,6 @@
 #include <system_error>
 #include <utility>
 
-#include <unistd.h>
-
 namespace ninfer::serve {
 namespace {
 
@@ -40,7 +39,7 @@ std::uint64_t unix_time_ms() {
 std::string new_server_instance_id() {
     const auto now    = std::chrono::system_clock::now().time_since_epoch();
     const auto micros = std::chrono::duration_cast<std::chrono::microseconds>(now).count();
-    return "serve-" + std::to_string(static_cast<long long>(::getpid())) + '-' +
+    return "serve-" + std::to_string(static_cast<long long>(process_id())) + '-' +
            std::to_string(micros);
 }
 

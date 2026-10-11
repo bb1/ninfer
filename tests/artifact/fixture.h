@@ -4,6 +4,11 @@
 
 #include <nlohmann/json.hpp>
 
+#if defined(_WIN32)
+// This UCRT has no mkdtemp; _mktemp_s (declared via corecrt_io.h) fills the template in place.
+#include <io.h>
+#endif
+
 #include <algorithm>
 #include <array>
 #include <cstddef>
@@ -49,9 +54,19 @@ struct Fixture {
         auto pattern = (std::filesystem::temp_directory_path() / "ninfer-artifact-XXXXXX").string();
         std::vector<char> buffer(pattern.begin(), pattern.end());
         buffer.push_back('\0');
+#if defined(_WIN32)
+        // _mktemp_s only fills the template; mkdtemp would also create the directory. Its size
+        // parameter must cover the null terminator (_Inout_updates_z_).
+        if (_mktemp_s(buffer.data(), buffer.size()) != 0) {
+            throw std::runtime_error("cannot create fixture directory");
+        }
+        directory = buffer.data();
+        std::filesystem::create_directory(directory);
+#else
         const char* path = ::mkdtemp(buffer.data());
         if (!path) { throw std::runtime_error("cannot create fixture directory"); }
         directory = path;
+#endif
         entry     = directory / "model.ninfer";
         root      = {
             {"components",

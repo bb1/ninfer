@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/uint128.h"
 #include "runtime/contract/resources.h"
 #include "runtime/engine/context_cache/context_cost.h"
 #include "runtime/engine/context_cache/prefix_index.h"
@@ -1189,8 +1190,8 @@ private:
             return left.priority.last_demand < right.priority.last_demand;
         }
         if (!left.priority.reused) {
-            const auto a = static_cast<unsigned __int128>(left.loss) * right.units;
-            const auto b = static_cast<unsigned __int128>(right.loss) * left.units;
+            const auto a = static_cast<UInt128>(left.loss) * right.units;
+            const auto b = static_cast<UInt128>(right.loss) * left.units;
             if (a != b) { return a < b; }
         }
         return left.order < right.order;

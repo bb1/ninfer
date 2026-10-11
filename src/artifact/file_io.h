@@ -24,9 +24,14 @@ public:
 
 private:
     std::filesystem::path path_;
-    int fd_                = -1;
-    mutable int direct_fd_ = -1;
-    std::uint64_t bytes_   = 0;
+#ifdef _WIN32
+    void* handle_                = nullptr;
+    mutable void* direct_handle_ = nullptr;
+#else
+    int fd_                      = -1;
+    mutable int direct_fd_       = -1;
+#endif
+    std::uint64_t bytes_         = 0;
 };
 
 } // namespace ninfer::artifact

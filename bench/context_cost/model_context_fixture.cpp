@@ -7,6 +7,7 @@
 #include "core/host_kv_arena.h"
 #include "core/layout.h"
 #include "core/paged_kv_cache.h"
+#include "core/uint128.h"
 #include "ninfer/engine.h"
 
 #include <cuda_runtime.h>
@@ -403,8 +404,8 @@ std::vector<TextCase> text_cases(std::uint32_t chunk) {
 }
 
 std::uint64_t attention_pairs(std::uint32_t prefix, std::uint32_t suffix) {
-    const unsigned __int128 pairs = static_cast<unsigned __int128>(prefix) * suffix +
-                                    static_cast<unsigned __int128>(suffix) * (suffix + 1ULL) / 2U;
+    const UInt128 pairs = static_cast<UInt128>(prefix) * suffix +
+                          static_cast<UInt128>(suffix) * (suffix + 1ULL) / 2U;
     if (pairs > std::numeric_limits<std::uint64_t>::max()) {
         throw std::overflow_error("prefill attention-pair count exceeds uint64");
     }

@@ -16,6 +16,7 @@ function(ninfer_add_test name)
       NINFER_PYTHON_EXECUTABLE="${Python3_EXECUTABLE}")
   endif()
   add_test(NAME ${name} COMMAND ${name})
+  ninfer_copy_runtime_dlls(${name})
 endfunction()
 
 # Apply these to the translation unit containing the oracle, including shared

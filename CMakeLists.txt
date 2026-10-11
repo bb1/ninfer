@@ -19,6 +19,17 @@ option(NINFER_BUILD_APPS "Build the NInfer CLI, server and perplexity evaluator"
 option(BUILD_TESTING "Build NInfer tests" OFF)
 option(NINFER_BUILD_BENCHMARKS "Build NInfer benchmarks" OFF)
 
+if(MSVC)
+  # windows.h (pulled in by core/platform.h and others) must not define the min/max macros;
+  # utf8proc is compiled into our targets, never consumed as an import library.
+  add_compile_definitions(NOMINMAX UTF8PROC_STATIC)
+  # CCCL (CUDA standard headers) rejects the traditional MSVC preprocessor; nvcc takes it
+  # for its host-compiler passes via -Xcompiler. fmt requires /utf-8 for Unicode support.
+  add_compile_options($<$<COMPILE_LANGUAGE:C,CXX>:/Zc:preprocessor>)
+  add_compile_options($<$<COMPILE_LANGUAGE:C,CXX>:/utf-8>)
+  set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler /Zc:preprocessor -Xcompiler /utf-8")
+endif()
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CUDA_STANDARD 20)

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ops/common/mbarrier.cuh"
+#include "ops/common/tma_descriptor.h"
 #include "ops/common/math.h"
 #include "ops/common/token_slices.h"
 #include "ops/linear/common/epilogue.cuh"
@@ -16,10 +17,11 @@
 
 namespace ninfer::ops::detail {
 
-struct alignas(128) Fp8TmaDescriptors {
+struct NINFER_TMA_DESCRIPTORS Fp8TmaDescriptors {
     CUtensorMap activation;
     CUtensorMap weight;
 };
+static_assert(alignof(Fp8TmaDescriptors) >= 64, "TMA descriptors require 64-byte alignment");
 
 struct Fp8TmaSplitKPlan {
     int full_tiles = 0;

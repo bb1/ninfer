@@ -6,10 +6,12 @@ target_link_libraries(ninfer PRIVATE
   ninfer_engine
   ninfer_product_logging
   ninfer_product_prompt_input)
+ninfer_copy_runtime_dlls(ninfer)
 
 add_executable(ninfer-serve serve/main.cpp)
 ninfer_internal_includes(ninfer-serve)
 target_link_libraries(ninfer-serve PRIVATE ninfer_serve ninfer_product_logging)
+ninfer_copy_runtime_dlls(ninfer-serve)
 
 add_executable(ninfer-perplexity
   perplexity/main.cpp
@@ -18,3 +20,4 @@ add_executable(ninfer-perplexity
 ninfer_internal_includes(ninfer-perplexity)
 target_link_libraries(ninfer-perplexity PRIVATE
   ninfer_engine ninfer_product_logging ninfer::json)
+ninfer_copy_runtime_dlls(ninfer-perplexity)

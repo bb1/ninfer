@@ -1,4 +1,5 @@
 #include "serve/serve_options.h"
+#include "core/uint128.h"
 #include "product/speculative_options.h"
 
 #include <cerrno>
@@ -75,8 +76,8 @@ std::size_t parse_host_context_mib(const char* text) {
     if (fraction.size() > 20) {
         throw std::invalid_argument("--host-context-mib must resolve to a whole number of bytes");
     }
-    unsigned __int128 numerator = 0;
-    unsigned __int128 divisor   = 1;
+    UInt128 numerator = 0;
+    UInt128 divisor   = 1;
     for (const char character : fraction) {
         numerator = numerator * 10 + static_cast<unsigned int>(character - '0');
         divisor *= 10;

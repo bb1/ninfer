@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ops/common/mbarrier.cuh"
+#include "ops/common/tma_descriptor.h"
 #include "ops/common/memory.cuh"
 #include "ops/common/mma.cuh"
 #include "ops/linear/nvfp4/nvfp4_schedule.cuh"
@@ -21,12 +22,13 @@
 
 namespace ninfer::ops::detail {
 
-struct alignas(128) Nvfp4A4TmaDescriptors {
+struct NINFER_TMA_DESCRIPTORS Nvfp4A4TmaDescriptors {
     CUtensorMap a_codes;
     CUtensorMap b_codes;
     CUtensorMap a_scales;
     CUtensorMap b_scales;
 };
+static_assert(alignof(Nvfp4A4TmaDescriptors) >= 64, "TMA descriptors require 64-byte alignment");
 
 inline void nvfp4_check_driver(CUresult status, const char* operation) {
     if (status == CUDA_SUCCESS) { return; }

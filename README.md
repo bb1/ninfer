@@ -28,9 +28,10 @@ the weights again.
 
 ## Quick start
 
-NInfer requires 64-bit Linux, an NVIDIA GeForce RTX 5090, a CUDA toolkit supporting `sm_120a`,
-CMake 3.28 or newer, a C++20 host compiler, Ninja, `pkg-config`, FFmpeg development libraries
-(`libavformat`, `libavcodec`, `libavutil`, and `libswscale`), and `libcurl >= 7.85`.
+NInfer requires an NVIDIA GeForce RTX 5090, a CUDA toolkit supporting `sm_120a`, CMake 3.28 or
+newer, a C++20 host compiler and Ninja on 64-bit Linux or Windows (MSVC). Linux additionally needs
+`pkg-config`, FFmpeg development libraries (`libavformat`, `libavcodec`, `libavutil`, and
+`libswscale`), and `libcurl >= 7.85`; Windows uses prebuilt archives as shown below.
 CUDA 13.1 is the validated development toolkit; CMake does not impose a CUDA version floor.
 The build rejects CUDA architectures other than `sm_120a`.
 
@@ -43,6 +44,19 @@ cd ninfer
 cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
 cmake --build build -j
 ```
+
+On Windows, run CMake from an x64 Visual Studio developer prompt and point it at an extracted
+FFmpeg win64 shared build (for example BtbN `ffmpeg-n9.0-latest-win64-gpl-shared`) and the
+[curl win64 archive](https://curl.se/windows/). CMake copies their DLLs next to each executable:
+
+```bat
+cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release ^
+  -DNINFER_FFMPEG_ROOT=C:\deps\ffmpeg-n9.0-latest-win64-gpl-shared-9.0 ^
+  -DNINFER_CURL_ROOT=C:\deps\curl-8.22.0_2-win64-mingw
+cmake --build build -j
+```
+
+Windows runs only the C++ product; the Python conversion tools are POSIX-only.
 
 Tests and benchmarks are excluded from the default build. `cmake --preset release` configures
 the same product build; `cmake --preset dev` also enables tests and benchmarks and finds a

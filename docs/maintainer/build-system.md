@@ -71,6 +71,14 @@ exposes the repository-pinned JSON/HTTP headers and conditional spdlog library. 
 requirements follow their consuming targets. `cmake/NinferTargets.cmake` provides private
 project includes and the two CUDA archive policies.
 
+Windows has no pkg-config. `NINFER_FFMPEG_ROOT` and `NINFER_CURL_ROOT` name extracted prebuilt
+archives with `include/`, `lib/` (MSVC `.lib` or MinGW `.dll.a` import libraries) and `bin/`;
+they define the same `PkgConfig::FFMPEG` and `PkgConfig::LIBCURL` targets, so component
+CMakeLists stay platform-neutral. `ninfer_copy_runtime_dlls(<target>)` copies their runtime DLLs
+next to product executables, `ninfer_bench` and tests; it does nothing elsewhere. The MSVC build
+uses `/Zc:preprocessor` (required by CCCL) and `/utf-8`. `ninfer_artifact_materialization_test`
+and the writer interop test are Linux-only: fault injection uses GNU ld `--wrap`.
+
 `src/CMakeLists.txt` explicitly enters the component directories. Each component's
 `CMakeLists.txt` owns its targets, dependency visibility and compile properties:
 

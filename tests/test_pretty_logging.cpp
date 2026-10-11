@@ -3,7 +3,14 @@
 
 #include <spdlog/logger.h>
 
+#if defined(_WIN32)
+// MSVC CRT file descriptors mirror the POSIX ones; binary access keeps the captured bytes
+// identical to POSIX pipes.
+#include <fcntl.h>
+#include <io.h>
+#else
 #include <unistd.h>
+#endif
 
 #include <algorithm>
 #include <array>
@@ -17,6 +24,51 @@
 
 namespace {
 
+#if defined(_WIN32)
+class StderrCapture {
+public:
+    StderrCapture() {
+        if (_pipe(pipe_, 0, _O_BINARY) != 0) { throw std::runtime_error(std::strerror(errno)); }
+        saved_ = _dup(_fileno(stderr));
+        if (saved_ < 0 || _dup2(pipe_[1], _fileno(stderr)) < 0) {
+            throw std::runtime_error(std::strerror(errno));
+        }
+        _close(pipe_[1]);
+        pipe_[1] = -1;
+    }
+
+    ~StderrCapture() {
+        if (saved_ >= 0) {
+            (void)_dup2(saved_, _fileno(stderr));
+            _close(saved_);
+        }
+        if (pipe_[0] >= 0) { _close(pipe_[0]); }
+    }
+
+    std::string finish() {
+        std::fflush(stderr);
+        if (_dup2(saved_, _fileno(stderr)) < 0) { throw std::runtime_error(std::strerror(errno)); }
+        _close(saved_);
+        saved_ = -1;
+
+        std::string output;
+        std::array<char, 4096> buffer{};
+        for (;;) {
+            const int count = _read(pipe_[0], buffer.data(), static_cast<unsigned>(buffer.size()));
+            if (count == 0) { break; }
+            if (count < 0) { throw std::runtime_error(std::strerror(errno)); }
+            output.append(buffer.data(), static_cast<std::size_t>(count));
+        }
+        _close(pipe_[0]);
+        pipe_[0] = -1;
+        return output;
+    }
+
+private:
+    int pipe_[2]{-1, -1};
+    int saved_ = -1;
+};
+#else
 class StderrCapture {
 public:
     StderrCapture() {
@@ -63,6 +115,7 @@ private:
     int pipe_[2]{-1, -1};
     int saved_ = -1;
 };
+#endif
 
 int check(bool condition, const char* message) {
     if (condition) { return 0; }

@@ -17,8 +17,31 @@
 #include <utility>
 #include <variant>
 
+#if defined(_WIN32)
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <timeapi.h>
+#endif
+
 namespace ninfer {
 namespace {
+
+// Engine workers poll with millisecond timed waits. Windows rounds those up to the process timer
+// resolution, 15.6 ms by default, so the Engine requests 1 ms resolution while it is alive.
+class TimerResolution {
+public:
+#if defined(_WIN32)
+    TimerResolution() noexcept : raised_(::timeBeginPeriod(1) == TIMERR_NOERROR) {}
+    ~TimerResolution() {
+        if (raised_) { ::timeEndPeriod(1); }
+    }
+    TimerResolution(const TimerResolution&)            = delete;
+    TimerResolution& operator=(const TimerResolution&) = delete;
+
+private:
+    bool raised_;
+#endif
+};
 
 DeviceContext initialize_device(const EngineOptions& options) {
     StartupPhaseScope phase(options.startup_observer, StartupPhase::CudaInitialize);
@@ -180,6 +203,7 @@ public:
         } catch (...) {}
     }
 
+    TimerResolution timer_resolution; // Declared first: outlives the Engine workers.
     EngineOptions options;
     DeviceContext device;
     std::unique_ptr<runtime::ModelInstance> active;
